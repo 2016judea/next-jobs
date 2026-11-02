@@ -21,6 +21,16 @@ blanks. Jobber stamps the request source as "Next Jobs", which is how use gets m
 
 $29 a month after 7 free days of matches (Stripe, Brick & Mortar account). Minneapolis only.
 
+## Status (2026-11-02)
+
+- Jobber app `Next Jobs` (Developer Center app id MTY3NDgy) is **In Review**; Jobber emails
+  aidan@brickandmortar.dev to book a review call. Pre-submission checklist form submitted.
+- Tested end to end against the Jobber developer test account "Next Jobs Test Roofing" (90-day
+  account, seeded with 12 synthetic "Sample Client" records): connect, learn, 25 requests created from
+  live permits, in-app disconnect, Marketplace disconnect (APP_DISCONNECT webhook), reconnect,
+  Marketplace "Manage App", refresh-token rotation.
+- Developer Center login has 2FA (authenticator app); the TOTP secret is `JOBBER_DEV_TOTP_SECRET` in `.env`.
+
 ## Layout
 
 | path | what |
