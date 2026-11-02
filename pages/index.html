@@ -1,0 +1,45 @@
+title: Next Jobs: Minneapolis permits, in your Jobber
+desc: Every morning, Minneapolis building permits that fit your trade and service area land in Jobber as new requests.
+---
+<h1>Minneapolis permits, in your Jobber as new requests.</h1>
+<p class="mute">Every morning Next Jobs reads the city's building permits and puts the ones that fit your trade and your area into Jobber, with the reason each one matched.</p>
+<p><a class="btn" href="/api/connect">Connect Jobber</a></p>
+<p class="small mute">7 days of matches free, then $29 a month. Minneapolis only for now.</p>
+
+<h2>What you'd have gotten</h2>
+<p class="small mute" id="lede">Pick your trade. These are real permits from the last 14 days, citywide.</p>
+<div class="chips" id="trades" role="group" aria-label="Your trade"></div>
+<p class="stat" id="stat"></p>
+<div id="rows"></div>
+
+<h2>How it works</h2>
+<ol class="steps">
+<li><b>Connect Jobber.</b> Next Jobs reads your jobs, quotes and clients to learn what you sell and where you work. You can correct both.</li>
+<li><b>Permits get matched.</b> Same trade near you, the work that follows (a new roof means gutters), and competitor jobs on blocks where you already have clients.</li>
+<li><b>They land in Jobber.</b> Each one is a new request with the address, the county owner name, the year built and why it matched. Lead source: Next Jobs.</li>
+</ol>
+
+<h2>The honest part</h2>
+<p>A permit usually means that trade's job is already sold. Next Jobs says so on every request. The value is the work after it, the neighbors who just watched a crew on their block, and knowing which competitor is working your streets.</p>
+
+<script>
+const LABELS = {roofing:"Roofing",gutters:"Gutters",hvac:"Heating & cooling",windows:"Windows",siding:"Siding",insulation:"Insulation",solar:"Solar",plumbing:"Plumbing",electrical:"Electrical",painting:"Painting",flooring:"Flooring",landscaping:"Lawn & landscaping",cleaning:"Cleaning",concrete:"Concrete",junk:"Junk removal"};
+const KIND = {follow_on:"Work after", same_trade:"Same trade"};
+const el = (t, c, s) => { const e = document.createElement(t); if (c) e.className = c; if (s != null) e.textContent = s; return e; };
+const box = document.getElementById("trades");
+async function show(t) {
+  for (const b of box.children) b.setAttribute("aria-pressed", b.dataset.t === t);
+  const rows = document.getElementById("rows"); rows.textContent = "Reading the register…";
+  try {
+    const j = await (await fetch("/api/sample?trade=" + t)).json();
+    document.getElementById("stat").textContent = `${j.total} matches for a ${j.label.toLowerCase()} business in the last ${j.days} days (${j.kinds.follow_on || 0} follow-on, ${j.kinds.same_trade || 0} same-trade). Newest permit ${j.newest}.`;
+    rows.textContent = "";
+    for (const r of j.rows) {
+      const c = el("div", "card"); const t1 = el("div", "t"); t1.append(el("span", "tag", KIND[r.kind] || r.kind), r.title);
+      c.append(t1, el("div", "a", `${r.address} · issued ${r.issued}`), el("div", "r", r.reason)); rows.append(c);
+    }
+  } catch (e) { rows.textContent = "Couldn't read the register just now."; }
+}
+for (const [t, l] of Object.entries(LABELS)) { const b = el("button", "chip", l); b.dataset.t = t; b.type = "button"; b.onclick = () => show(t); box.append(b); }
+show("roofing");
+</script>

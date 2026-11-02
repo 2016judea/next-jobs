@@ -1,0 +1,12 @@
+{
+  "buildCommand": "echo build",
+  "outputDirectory": "public",
+  "crons": [{ "path": "/api/run", "schedule": "0 13 * * *" }],
+  "rewrites": [
+    { "source": "/manage", "destination": "/manage/index.html" },
+    { "source": "/terms", "destination": "/terms/index.html" },
+    { "source": "/privacy", "destination": "/privacy/index.html" },
+    { "source": "/waitlist", "destination": "/waitlist/index.html" },
+    { "source": "/support", "destination": "/support/index.html" }
+  ]
+}

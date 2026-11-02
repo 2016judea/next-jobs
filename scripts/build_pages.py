@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+"""Build site/public/ from pages/*.html: wraps each body in the shared shell (head, styles, analytics tag).
+
+Edit pages/ and this file, never site/public/ (it is overwritten). The Vercel analytics tag lives here
+so a rebuild can never drop it.
+"""
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+OUT = ROOT / "site" / "public"
+
+CSS = """
+:root{--ink:#14211b;--mute:#5b6b63;--line:#dfe6e1;--bg:#f7f8f5;--card:#fff;--acc:#1f6f4a;--acc2:#e9f3ed;--warn:#8a5a00}
+@media (prefers-color-scheme:dark){:root{--ink:#e8efe9;--mute:#9fb0a6;--line:#2c3a33;--bg:#111814;--card:#18211c;--acc:#5fc48f;--acc2:#1d2e25;--warn:#e0b45a}}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:720px;margin:0 auto;padding:20px 16px 64px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:8px}
+.brand{font-weight:700;letter-spacing:-.01em;color:var(--ink);text-decoration:none}.brand span{color:var(--acc)}
+h1{font-size:clamp(28px,6vw,40px);line-height:1.1;letter-spacing:-.02em;margin:20px 0 10px}
+h2{font-size:20px;margin:32px 0 8px}p{margin:0 0 12px}.mute{color:var(--mute)}.small{font-size:14px}
+a{color:var(--acc)}
+.btn{display:inline-block;background:var(--acc);color:#fff;border:0;border-radius:10px;padding:13px 18px;font:600 16px/1 inherit;text-decoration:none;cursor:pointer;min-height:44px}
+@media (prefers-color-scheme:dark){.btn{color:#0d1511}}
+.btn.ghost{background:transparent;color:var(--acc);border:1px solid var(--line)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:9px 14px;font:inherit;font-size:15px;cursor:pointer;min-height:40px}
+.chip[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:#fff}
+@media (prefers-color-scheme:dark){.chip[aria-pressed=true]{color:#0d1511}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:10px 0}
+.card .t{font-weight:600}.card .a{font-size:14px;color:var(--mute)}.card .r{font-size:15px;margin-top:6px}
+.tag{display:inline-block;font-size:12px;font-weight:600;border-radius:6px;padding:2px 7px;background:var(--acc2);color:var(--acc);margin-right:6px}
+.steps{counter-reset:s;list-style:none;padding:0;margin:0}.steps li{counter-increment:s;padding:8px 0 8px 40px;position:relative}
+.steps li:before{content:counter(s);position:absolute;left:0;top:7px;width:28px;height:28px;border-radius:50%;background:var(--acc2);color:var(--acc);font-weight:700;display:grid;place-items:center}
+.stat{font-size:15px;color:var(--mute);margin:4px 0 0}
+label.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+input[type=number]{font-size:16px;width:90px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+footer{margin-top:48px;font-size:14px;color:var(--mute)}footer a{color:var(--mute)}
+"""
+
+SHELL = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>{title}</title><meta name="description" content="{desc}">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<style>{css}</style>
+<script>window.va=window.va||function(){{(window.vaq=window.vaq||[]).push(arguments)}}</script><script defer src="/_vercel/insights/script.js"></script>
+</head><body><div class="wrap">
+<header><a class="brand" href="/">Next <span>Jobs</span></a><a class="small" href="/manage">Your account</a></header>
+{body}
+<footer><a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/support">Support</a> · Built by Brick &amp; Mortar in Minneapolis</footer>
+</div></body></html>
+"""
+
+
+def main():
+    for src in sorted((ROOT / "pages").glob("*.html")):
+        text = src.read_text()
+        meta, body = text.split("\n---\n", 1)
+        kv = dict(line.split(": ", 1) for line in meta.strip().splitlines())
+        dest = OUT / ("index.html" if src.stem == "index" else f"{src.stem}/index.html")
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(SHELL.format(title=kv["title"], desc=kv.get("desc", ""), css=CSS.strip(), body=body.strip()))
+        print("  ", dest.relative_to(ROOT))
+
+
+if __name__ == "__main__":
+    main()

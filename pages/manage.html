@@ -1,0 +1,73 @@
+title: Next Jobs: your account
+desc: What Next Jobs learned about your business, and the permits it has sent to your Jobber.
+---
+<div id="out"><p class="mute">Loading…</p></div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const el = (t, c, s) => { const e = document.createElement(t); if (c) e.className = c; if (s != null) e.textContent = s; return e; };
+const KIND = {follow_on:"Work after", same_trade:"Same trade", neighbor:"Your clients' block"};
+let me;
+async function save(body) {
+  const r = await fetch("/api/me", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+  me = await r.json(); render();
+}
+function render() {
+  const out = $("#out"); out.textContent = "";
+  if (!me.ok) {
+    out.append(el("h1", null, "Connect your Jobber"), el("p", "mute", "Sign in through Jobber to see what Next Jobs learned about your business and the permits it sent you."));
+    const a = el("a", "btn", "Connect Jobber"); a.href = "/api/connect"; out.append(a); return;
+  }
+  const welcome = new URLSearchParams(location.search).has("welcome");
+  out.append(el("h1", null, welcome ? `Connected: ${me.name}` : me.name));
+  if (!me.active) { out.append(el("p", "mute", "Disconnected. Nothing more will be sent.")); const a = el("a", "btn", "Connect again"); a.href = "/api/connect"; out.append(a); return; }
+
+  const trial = new Date(me.trial_ends), left = Math.ceil((trial - Date.now()) / 86400000);
+  const plan = el("div", "card");
+  if (me.subscribed) plan.append(el("div", "t", `Subscribed: $${me.price_usd} a month`), el("div", "a", "New matches arrive every morning."));
+  else {
+    plan.append(el("div", "t", left > 0 ? `Free matches for ${left} more day${left === 1 ? "" : "s"}` : "Your free week is over"),
+      el("div", "a", `Then $${me.price_usd} a month to keep them coming. Cancel any time.`));
+    const b = el("button", "btn", `Keep matches coming: $${me.price_usd}/mo`); b.style.marginTop = "10px";
+    b.onclick = async () => { b.disabled = true; const j = await (await fetch("/api/subscribe", { method: "POST" })).json(); if (j.url) location.href = j.url; else b.disabled = false; };
+    plan.append(b);
+  }
+  out.append(plan);
+
+  out.append(el("h2", null, "What you sell"), el("p", "small mute", me.trades_source === "pro" ? "Set by you." : "Learned from your Jobber jobs, quotes and requests. Tap to correct."));
+  const chips = el("div", "chips");
+  for (const [t, l] of Object.entries(me.all_trades)) {
+    const b = el("button", "chip", l); b.type = "button"; b.setAttribute("aria-pressed", me.trades.includes(t));
+    b.onclick = () => { const s = new Set(me.trades); s.has(t) ? s.delete(t) : s.add(t); save({ trades: [...s] }); };
+    chips.append(b);
+  }
+  out.append(chips);
+
+  out.append(el("h2", null, "Where you work"));
+  const a = me.area;
+  out.append(el("p", "small mute", a ? (a.source === "clients" ? `Learned from ${a.n} of your client addresses: ${a.radius_mi} miles around ${a.lat.toFixed(3)}, ${a.lon.toFixed(3)}.` : "Not enough Minneapolis clients in your Jobber yet, so this covers the whole city.") : ""));
+  const rad = el("label", "row"); rad.append(el("span", null, "Radius, miles"));
+  const ri = el("input"); ri.type = "number"; ri.min = 1; ri.max = 25; ri.value = a?.radius_mi ?? 8; ri.onchange = () => save({ radius_mi: ri.value }); rad.append(ri);
+  const mx = el("label", "row"); mx.append(el("span", null, "Most requests a week"));
+  const mi = el("input"); mi.type = "number"; mi.min = 1; mi.max = 100; mi.value = me.max_per_week; mi.onchange = () => save({ max_per_week: mi.value }); mx.append(mi);
+  const pz = el("label", "row"); pz.append(el("span", null, me.paused ? "Paused" : "Sending every morning"));
+  const pb = el("button", "btn ghost", me.paused ? "Resume" : "Pause"); pb.type = "button"; pb.onclick = () => save({ paused: !me.paused }); pz.append(pb);
+  out.append(rad, mx, pz);
+
+  out.append(el("h2", null, "Sent to your Jobber"));
+  if (!me.matches.length) out.append(el("p", "mute", "Nothing yet. The next run is tomorrow morning."));
+  for (const m of me.matches) {
+    const c = el("div", "card"); const t = el("div", "t"); t.append(el("span", "tag", KIND[m.kind] || m.kind), m.address);
+    c.append(t, el("div", "a", `${m.created_at.slice(0, 10)} · ${m.distance_mi} mi${m.error ? " · not delivered: " + m.error : ""}`), el("div", "r", m.reason));
+    out.append(c);
+  }
+
+  const d = el("button", "btn ghost", "Disconnect Next Jobs"); d.style.marginTop = "28px"; d.type = "button";
+  d.onclick = async () => {
+    if (d.dataset.confirm !== "1") { d.dataset.confirm = "1"; d.textContent = "Tap again to disconnect"; return; }
+    await fetch("/api/disconnect", { method: "POST" }); location.href = "/manage";
+  };
+  out.append(d);
+}
+fetch("/api/me").then((r) => r.json()).then((j) => { me = j; render(); });
+</script>

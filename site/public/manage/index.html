@@ -1,0 +1,104 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Next Jobs: your account</title><meta name="description" content="What Next Jobs learned about your business, and the permits it has sent to your Jobber.">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<style>:root{--ink:#14211b;--mute:#5b6b63;--line:#dfe6e1;--bg:#f7f8f5;--card:#fff;--acc:#1f6f4a;--acc2:#e9f3ed;--warn:#8a5a00}
+@media (prefers-color-scheme:dark){:root{--ink:#e8efe9;--mute:#9fb0a6;--line:#2c3a33;--bg:#111814;--card:#18211c;--acc:#5fc48f;--acc2:#1d2e25;--warn:#e0b45a}}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:720px;margin:0 auto;padding:20px 16px 64px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:8px}
+.brand{font-weight:700;letter-spacing:-.01em;color:var(--ink);text-decoration:none}.brand span{color:var(--acc)}
+h1{font-size:clamp(28px,6vw,40px);line-height:1.1;letter-spacing:-.02em;margin:20px 0 10px}
+h2{font-size:20px;margin:32px 0 8px}p{margin:0 0 12px}.mute{color:var(--mute)}.small{font-size:14px}
+a{color:var(--acc)}
+.btn{display:inline-block;background:var(--acc);color:#fff;border:0;border-radius:10px;padding:13px 18px;font:600 16px/1 inherit;text-decoration:none;cursor:pointer;min-height:44px}
+@media (prefers-color-scheme:dark){.btn{color:#0d1511}}
+.btn.ghost{background:transparent;color:var(--acc);border:1px solid var(--line)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:9px 14px;font:inherit;font-size:15px;cursor:pointer;min-height:40px}
+.chip[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:#fff}
+@media (prefers-color-scheme:dark){.chip[aria-pressed=true]{color:#0d1511}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:10px 0}
+.card .t{font-weight:600}.card .a{font-size:14px;color:var(--mute)}.card .r{font-size:15px;margin-top:6px}
+.tag{display:inline-block;font-size:12px;font-weight:600;border-radius:6px;padding:2px 7px;background:var(--acc2);color:var(--acc);margin-right:6px}
+.steps{counter-reset:s;list-style:none;padding:0;margin:0}.steps li{counter-increment:s;padding:8px 0 8px 40px;position:relative}
+.steps li:before{content:counter(s);position:absolute;left:0;top:7px;width:28px;height:28px;border-radius:50%;background:var(--acc2);color:var(--acc);font-weight:700;display:grid;place-items:center}
+.stat{font-size:15px;color:var(--mute);margin:4px 0 0}
+label.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+input[type=number]{font-size:16px;width:90px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+footer{margin-top:48px;font-size:14px;color:var(--mute)}footer a{color:var(--mute)}</style>
+<script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)}</script><script defer src="/_vercel/insights/script.js"></script>
+</head><body><div class="wrap">
+<header><a class="brand" href="/">Next <span>Jobs</span></a><a class="small" href="/manage">Your account</a></header>
+<div id="out"><p class="mute">Loading…</p></div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const el = (t, c, s) => { const e = document.createElement(t); if (c) e.className = c; if (s != null) e.textContent = s; return e; };
+const KIND = {follow_on:"Work after", same_trade:"Same trade", neighbor:"Your clients' block"};
+let me;
+async function save(body) {
+  const r = await fetch("/api/me", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+  me = await r.json(); render();
+}
+function render() {
+  const out = $("#out"); out.textContent = "";
+  if (!me.ok) {
+    out.append(el("h1", null, "Connect your Jobber"), el("p", "mute", "Sign in through Jobber to see what Next Jobs learned about your business and the permits it sent you."));
+    const a = el("a", "btn", "Connect Jobber"); a.href = "/api/connect"; out.append(a); return;
+  }
+  const welcome = new URLSearchParams(location.search).has("welcome");
+  out.append(el("h1", null, welcome ? `Connected: ${me.name}` : me.name));
+  if (!me.active) { out.append(el("p", "mute", "Disconnected. Nothing more will be sent.")); const a = el("a", "btn", "Connect again"); a.href = "/api/connect"; out.append(a); return; }
+
+  const trial = new Date(me.trial_ends), left = Math.ceil((trial - Date.now()) / 86400000);
+  const plan = el("div", "card");
+  if (me.subscribed) plan.append(el("div", "t", `Subscribed: $${me.price_usd} a month`), el("div", "a", "New matches arrive every morning."));
+  else {
+    plan.append(el("div", "t", left > 0 ? `Free matches for ${left} more day${left === 1 ? "" : "s"}` : "Your free week is over"),
+      el("div", "a", `Then $${me.price_usd} a month to keep them coming. Cancel any time.`));
+    const b = el("button", "btn", `Keep matches coming: $${me.price_usd}/mo`); b.style.marginTop = "10px";
+    b.onclick = async () => { b.disabled = true; const j = await (await fetch("/api/subscribe", { method: "POST" })).json(); if (j.url) location.href = j.url; else b.disabled = false; };
+    plan.append(b);
+  }
+  out.append(plan);
+
+  out.append(el("h2", null, "What you sell"), el("p", "small mute", me.trades_source === "pro" ? "Set by you." : "Learned from your Jobber jobs, quotes and requests. Tap to correct."));
+  const chips = el("div", "chips");
+  for (const [t, l] of Object.entries(me.all_trades)) {
+    const b = el("button", "chip", l); b.type = "button"; b.setAttribute("aria-pressed", me.trades.includes(t));
+    b.onclick = () => { const s = new Set(me.trades); s.has(t) ? s.delete(t) : s.add(t); save({ trades: [...s] }); };
+    chips.append(b);
+  }
+  out.append(chips);
+
+  out.append(el("h2", null, "Where you work"));
+  const a = me.area;
+  out.append(el("p", "small mute", a ? (a.source === "clients" ? `Learned from ${a.n} of your client addresses: ${a.radius_mi} miles around ${a.lat.toFixed(3)}, ${a.lon.toFixed(3)}.` : "Not enough Minneapolis clients in your Jobber yet, so this covers the whole city.") : ""));
+  const rad = el("label", "row"); rad.append(el("span", null, "Radius, miles"));
+  const ri = el("input"); ri.type = "number"; ri.min = 1; ri.max = 25; ri.value = a?.radius_mi ?? 8; ri.onchange = () => save({ radius_mi: ri.value }); rad.append(ri);
+  const mx = el("label", "row"); mx.append(el("span", null, "Most requests a week"));
+  const mi = el("input"); mi.type = "number"; mi.min = 1; mi.max = 100; mi.value = me.max_per_week; mi.onchange = () => save({ max_per_week: mi.value }); mx.append(mi);
+  const pz = el("label", "row"); pz.append(el("span", null, me.paused ? "Paused" : "Sending every morning"));
+  const pb = el("button", "btn ghost", me.paused ? "Resume" : "Pause"); pb.type = "button"; pb.onclick = () => save({ paused: !me.paused }); pz.append(pb);
+  out.append(rad, mx, pz);
+
+  out.append(el("h2", null, "Sent to your Jobber"));
+  if (!me.matches.length) out.append(el("p", "mute", "Nothing yet. The next run is tomorrow morning."));
+  for (const m of me.matches) {
+    const c = el("div", "card"); const t = el("div", "t"); t.append(el("span", "tag", KIND[m.kind] || m.kind), m.address);
+    c.append(t, el("div", "a", `${m.created_at.slice(0, 10)} · ${m.distance_mi} mi${m.error ? " · not delivered: " + m.error : ""}`), el("div", "r", m.reason));
+    out.append(c);
+  }
+
+  const d = el("button", "btn ghost", "Disconnect Next Jobs"); d.style.marginTop = "28px"; d.type = "button";
+  d.onclick = async () => {
+    if (d.dataset.confirm !== "1") { d.dataset.confirm = "1"; d.textContent = "Tap again to disconnect"; return; }
+    await fetch("/api/disconnect", { method: "POST" }); location.href = "/manage";
+  };
+  out.append(d);
+}
+fetch("/api/me").then((r) => r.json()).then((j) => { me = j; render(); });
+</script>
+<footer><a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/support">Support</a> · Built by Brick &amp; Mortar in Minneapolis</footer>
+</div></body></html>
