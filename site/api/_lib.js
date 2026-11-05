@@ -1,5 +1,5 @@
 // Shared by the functions. Files starting with "_" are not routes on Vercel.
-// Pattern: ~/Desktop/block-brief/site/api/_lib.js (D1 over HTTP, sealed tokens, no SDKs).
+// Pattern: ~/Desktop/workspace/block-brief/site/api/_lib.js (D1 over HTTP, sealed tokens, no SDKs).
 const crypto = require("crypto");
 
 const SITE = process.env.SITE_URL || "https://next-jobs-permits.vercel.app";

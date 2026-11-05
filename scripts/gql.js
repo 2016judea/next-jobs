@@ -1,7 +1,7 @@
 // Local helper: run a GraphQL query against a connected pro's Jobber account.
 //   node scripts/gql.js '<query>' [accountId]   (env: bricks/.env + next-jobs/.env)
 const fs = require("fs"), path = require("path");
-for (const f of [path.join(process.env.HOME, "Desktop/bricks/.env"), path.join(__dirname, "../.env")])
+for (const f of [path.join(process.env.HOME, "Desktop/workspace/bricks/.env"), path.join(__dirname, "../.env")])
   for (const l of fs.readFileSync(f, "utf8").split("\n")) { const m = l.match(/^(?:export\s+)?([A-Z0-9_]+)=(.*)$/); if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^["']|["']$/g, ""); }
 const { d1, jobberFor } = require("../site/api/_lib");
 (async () => {

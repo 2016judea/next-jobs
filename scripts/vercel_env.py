@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 def env_files():
     out = {}
-    for f in (Path.home() / "Desktop/bricks/.env", ROOT / ".env"):
+    for f in (Path.home() / "Desktop/workspace/bricks/.env", ROOT / ".env"):
         for line in f.read_text().splitlines():
             if "=" in line and not line.lstrip().startswith("#"):
                 k, v = line.split("=", 1)

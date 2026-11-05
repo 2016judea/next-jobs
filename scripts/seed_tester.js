@@ -2,7 +2,7 @@
 // something to read: 12 "Sample Client" records on south Minneapolis blocks, each with a roofing request.
 // Synthetic names; addresses are city blocks picked from the register. Never run against a real pro.
 const fs = require("fs"), path = require("path");
-for (const f of [path.join(process.env.HOME, "Desktop/bricks/.env"), path.join(__dirname, "../.env")])
+for (const f of [path.join(process.env.HOME, "Desktop/workspace/bricks/.env"), path.join(__dirname, "../.env")])
   for (const l of fs.readFileSync(f, "utf8").split("\n")) { const m = l.match(/^(?:export\s+)?([A-Z0-9_]+)=(.*)$/); if (m && !process.env[m[1]]) process.env[m[1]] = m[2]; }
 const { d1, jobberFor } = require("../site/api/_lib");
 const ADDR = ["3301 42nd Ave S", "3415 43rd Ave S", "3540 44th Ave S", "3624 45th Ave S", "3712 46th Ave S", "3800 42nd Ave S",

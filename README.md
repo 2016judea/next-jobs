@@ -50,7 +50,7 @@ $29 a month after 7 free days of matches (Stripe, Brick & Mortar account). Minne
     node --test test/*.test.js                      # matcher rules
     node scripts/run_local.js --dry --limit 5       # learn + dry-run the newest connected pro
     python3 scripts/build_pages.py                  # pages/ -> site/public/
-    set -a; . ~/Desktop/bricks/.env; set +a
+    set -a; . ~/Desktop/workspace/bricks/.env; set +a
     python3 scripts/deploy.py                       # REST deploy, exits non-zero unless READY
     python3 scripts/vercel_env.py KEY ...           # push env vars from .env / bricks .env
 
